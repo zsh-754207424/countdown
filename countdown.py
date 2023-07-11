@@ -11,7 +11,6 @@ ini.read('conf.ini', encoding='utf8')
 剩余30秒开始，每隔5秒嘀一声，剩余10秒每一秒嘀一声，最后结束的时候有另一个提示音
 '''
 
-DEFAULT_CLOCK_TIME = 10
 SECONDS = 60
 
 cfg = ini['countdown']
@@ -21,6 +20,8 @@ FLASH_TIME = int(cfg.getint('FLASH_TIME'))
 BEEP_FREQ_TIME = int(cfg.getint('BEEP_FREQ_TIME'))
 BEEP_TIME = int(cfg.getint('BEEP_TIME'))
 BEEP_INTERVAL_TIME = int(cfg.getint('BEEP_INTERVAL_TIME'))
+DEFAULT_CLOCK_TIME = int(cfg.getint('DEFAULT_CLOCK_TIME'))
+
 
 class CountDown:
 
@@ -51,12 +52,12 @@ class CountDown:
 
         self.button1 = None
         self.button2 = None
-        self.button3 = None
+        self.button_reset = None
+        # self.button_stop = None
 
         self.init_button(btn=self.button1, button_conf=BUTTON1, txt='倒计时%d分' % BUTTON1)
         self.init_button(btn=self.button2, button_conf=BUTTON2, txt='倒计时%d分' % BUTTON2)
-        self.init_button(btn=self.button3, button_conf=DEFAULT_CLOCK_TIME, txt='重置')
-
+        self.init_button(btn=self.button_reset, button_conf=DEFAULT_CLOCK_TIME, txt='重置')
         self.root.protocol("WM_DELETE_WINDOW", self.no_closing)
         self.root.mainloop()
 
