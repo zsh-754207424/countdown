@@ -40,10 +40,12 @@ class CountDown:
         # 创建左侧框架
         self.left_frame = tk.Frame(self.root)
         self.left_frame.grid(row=0, column=0, sticky="nsew")
-
+        # 创建右侧框架
+        self.mid_frame = tk.Frame(self.root)
+        self.mid_frame.grid(row=0, column=1, sticky="nsew")
         # 创建右侧框架
         self.right_frame = tk.Frame(self.root)
-        self.right_frame.grid(row=0, column=1, sticky="nsew")
+        self.right_frame.grid(row=0, column=2, sticky="nsew")
 
         # init countdown
         self.countdown = None
@@ -53,37 +55,40 @@ class CountDown:
         self.button1 = None
         self.button2 = None
         self.button_reset = None
-        # self.button_stop = None
+        self.button_stop = None
+        self.stop_flag = True
 
-        self.init_button(btn=self.button1, button_conf=BUTTON1, txt='倒计时%d分' % BUTTON1)
-        self.init_button(btn=self.button2, button_conf=BUTTON2, txt='倒计时%d分' % BUTTON2)
-        self.init_button(btn=self.button_reset, button_conf=DEFAULT_CLOCK_TIME, txt='重置')
+        self.init_button(btn=self.button1, side=self.mid_frame, fn=self.reset_time, cf=BUTTON1, txt='倒计时%d分' % BUTTON1)
+        self.init_button(btn=self.button2, side=self.mid_frame, fn=self.reset_time, cf=BUTTON2, txt='倒计时%d分' % BUTTON2)
+        self.init_button(btn=self.button_reset, side=self.right_frame, fn=self.reset_time, cf=DEFAULT_CLOCK_TIME,
+                         txt='重置')
+        self.init_button(btn=self.button_stop, side=self.right_frame, fn=self.stop_or_restart, txt='暂停/开始')
         self.root.protocol("WM_DELETE_WINDOW", self.no_closing)
         self.root.mainloop()
 
-    def init_label(self, new_clock_time=DEFAULT_CLOCK_TIME, refresh=False):
+    def init_label(self, new_clock_time=DEFAULT_CLOCK_TIME * SECONDS, refresh=False):
         if self.countdown:
             self.countdown.destroy()
-        self.clock_time = new_clock_time * SECONDS
+        self.clock_time = new_clock_time
         # self.clock_time = 13  # 该变量定义倒计时时间
         f_str = '%M:%S'
         if self.clock_time >= 3600:
             f_str = '%H:%M:%S'
         self.countdown = tk.Label(self.left_frame, text='%d' % self.clock_time, font=("Arial", 36), fg="red")
         self.countdown.config(text=str(time.strftime(f_str, time.gmtime(self.clock_time))))
-        self.countdown.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
+        self.countdown.pack(fill=tk.BOTH, expand=True, padx=20, pady=10)
         if self.clock_time > 0 and refresh:
             self.refresh_current_time()
 
     def reset_time(self, button_conf):
         self.stop()
-        self.init_label(button_conf, button_conf!=DEFAULT_CLOCK_TIME)
+        self.init_label(button_conf * SECONDS, button_conf != DEFAULT_CLOCK_TIME)
 
-    def init_button(self, btn, button_conf, txt):
-        btn = tk.Button(self.right_frame, text=txt,
-                        command=lambda: self.reset_time(button_conf),
+    def init_button(self, side, btn, fn, txt, cf=None):
+        btn = tk.Button(side, text=txt,
+                        command=lambda: fn(cf),
                         width=8, height=1)
-        btn.pack(padx=10, pady=5)
+        btn.pack(padx=6, pady=6)
 
     def refresh_current_time(self):
         """刷新当前时间"""
@@ -108,6 +113,15 @@ class CountDown:
         fg = self.countdown.cget("foreground")
         self.countdown.configure(background=fg, foreground=bg)
         self.countdown.after(500, self.flash)
+
+    def stop_or_restart(self, *args):
+        if self.stop_flag:
+            self.countdown.destroy()
+            self.init_label(self.clock_time, False)
+
+        else:
+            self.init_label(self.clock_time, True)
+        self.stop_flag = not self.stop_flag
 
     def no_closing(self):  # 设置关闭方式的函数
         """
